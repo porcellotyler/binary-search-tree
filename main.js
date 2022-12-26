@@ -10,6 +10,9 @@ class Tree {
     constructor(array) {
         this.array = removeDupes(mergeSort(array));
         this.root = this.buildTree(this.array, 0, this.array.length - 1);
+        this.preOrderData = [];
+        this.inOrderData = [];
+        this.postOrderData = [];
     }
     
     buildTree(array, start, end) {
@@ -37,11 +40,8 @@ class Tree {
         return root;
     }
 
-    //Write delete function which accepts a value to delete (you’ll have to deal with several cases such as when a node has children or not)
     delete(value, root = this.root) {
-        if (root == null) {
-            return root;
-        }
+        if (root == null) return root;
 
         if (root.data > value) {
             root.leftChild = this.delete(value, root.leftChild);
@@ -53,15 +53,17 @@ class Tree {
             } else if (root.rightChild == null) {
                 return root = root.leftChild;
             }
-            root = root.rightChild;
+            //root = root.rightChild;
+            //root.data = root;
+            root.rightChild = this.delete(root.rightChild, root.data);
         }
         return root;
     }
 
     find(value, root = this.root) {        
-        if (root.data == value) {
-            return root;
-        }
+        if (root == null) return null;
+        
+        if (root.data == value) return root;
 
         if (root.data < value) {
             return this.find(value, root.rightChild);
@@ -70,47 +72,139 @@ class Tree {
         }
     }
 
-    //Write a levelOrder function which accepts another function as a parameter. levelOrder should traverse the tree in breadth-first level order and provide each node as the argument to the provided function. This function can be implemented using either iteration or recursion (try implementing both!). The method should return an array of values if no function is given. Tip: You will want to use an array acting as a queue to keep track of all the child nodes that you have yet to traverse and to add new ones to the list (as you saw in the video).
-    //need to watch video to understand levelOrder taking a function as a paramter; currently im having trouble going beyond 1 level depth
-    levelOrder(root = this.root, temp = []) {
-        //let temp = [];
-        console.log(`heres the ${root.data}`);
-        if (root == null) return null;
-        temp.push(root.data);
+    traverse(root, array) {
+        if (array != undefined) array.push(root.data);
+        if (root.leftChild != null) {
+            this.traverse(root.leftChild, array);
+        }
 
+        if (root.rightChild != null) {
+            this.traverse(root.rightChild, array);
+        }
+
+        return array;
+    }
+
+    levelOrder(root) {
+        const queue = [];
+        const result = [];
+        
+        if (root == null) return null;
+
+        queue.push(root);
+
+        while (queue.length > 0) {
+            let current = queue.shift(root);
+            result.push(current.data);
+
+            if (root.leftChild != null) {
+                queue.push(root.leftChild);
+            }
+
+            if (root.rightChild != null) {
+                queue.push(root.rightChild);
+            }            
+        }
+        return result;
+        /*
         if (root.leftChild != null && root.rightChild != null) {
-            temp.push(root.leftChild.data);
-            temp.push(root.rightChild.data);
+            queue.push(root.leftChild.data);
+            queue.push(root.rightChild.data);
             this.levelOrder(root = root.leftChild);
             this.levelOrder(root = root.rightChild);
             //return temp;
         }
 
         if (root.leftChild != null) {
-            temp.push(root.leftChild.data);
+            queue.push(root.leftChild.data);
             this.levelOrder(root = root.leftChild);
             //return temp;
         }
 
         if (root.rightChild != null) {
-            temp.push(root.rightChild.data);
+            queue.push(root.rightChild.data);
             this.levelOrder(root = root.rightChild);
             //return temp;
         }
 
         if (root.leftChild == null && root.rightChild == null) {
-            return temp;
+            return queue;
         }
-        return temp;
+        return queue;*/
     }
 
-    //Write inorder, preorder, and postorder functions that accept a function parameter. Each of these functions should traverse the tree in their respective depth-first order and yield each node to the provided function given as an argument. The functions should return an array of values if no function is given.
+    inOrder(root) {
+        if (root == null) {
+            return null;
+        }
 
-    //Write a height function which accepts a node and returns its height. Height is defined as the number of edges in longest path from a given node to a leaf node.
-    height(data, height = 0) {
-        if (data == null) return null;
+        if (root.leftChild != null) {
+            this.inOrder(root.leftChild.data);
+        }
 
-        let location = this.find(data);
+        if (root != undefined) {
+            this.inOrderData.push(root);
+        }
+
+        if (root.rightChild != null) {
+            this.inOrder(root.rightChild.data);
+        }
+
+        return this.inOrderData;
+    }
+
+    preOrder(root) {
+        if (root == null) {
+            return null;
+        }
+
+        if (root != undefined) {
+            this.preOrderData.push(root);
+        }
+
+        if (root.leftChild != null) {
+            this.preOrder(root.leftChild.data);
+        }
+
+        if (root.rightChild != null) {
+            this.preOrder(root.rightChild.data);
+        }
+
+        return this.preOrderData;
+    }
+
+    postOrder(root) {
+        if (root == null) {
+            return null;
+        }
+
+        if (root.leftChild != null) {
+            this.postOrder(root.leftChild.data);
+        }
+
+        if (root.rightChild != null) {
+            this.postOrder(root.rightChild.data);
+        }
+
+        if (root != undefined) {
+            this.postOrderData.push(root);
+        }
+        return this.postOrderData;
+    }
+
+    height(root) {
+        if (root == null) {
+            return 0;
+        } else {
+            let left = this.height(root.leftChild);
+            let right = this.height(root.rightChild);
+
+            return Math.max(left, right) + 1;
+        }
+        
+        /*if (root == null) return null;
+
+        let location = this.find(root);
         if (location == undefined) return;
 
         if (location.leftChild != null && location.rightChild != null) {
@@ -127,7 +221,53 @@ class Tree {
                 this.height(location.rightChild);
             }
         }
-        return height;
+        return height;*/
+    }
+
+    depth(node, root = this.root) {
+        let depth = -1;
+        console.log('hello');
+        if (node == null) return depth;
+        
+        if (root == node) {
+            return depth + 1;
+        } else if (
+            root.leftChild != null ||
+            (depth = this.depth(node, root.leftChild)) >= 0
+        ) {
+            return depth + 1;
+        } else if (
+            root.rightChild != null ||
+            (depth = this.depth(node, root.rightChild)) >= 0
+        ) {
+            return depth + 1;
+        }
+
+        return depth;
+    }
+
+    isBalanced(root = this.root) {
+        if (root == null) return null;
+
+        let leftTree = root.leftChild;
+        let rightTree = root.rightChild;
+
+        if (Math.abs(this.height(leftTree) - this.height(rightTree)) > 1) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    reBalance() {
+        if (this.isBalanced()) return this.root;
+
+        let reBalancedNewBSTA = [];
+        reBalancedNewBSTA = this.traverse(this.root, reBalancedNewBSTA);
+        
+        let balancedBST = new Tree(reBalancedNewBSTA);
+
+        return balancedBST.root;
     }
 
     prettyPrint(node = this.root, prefix = '', isLeft = true) {
@@ -172,14 +312,15 @@ function removeDupes(array) {
    return Array.from(new Set(array));
 }
 
-let myTree = new Tree([3, 1, 5, 4, 2]);
-//console.log("hello world");
-//console.log(myTree);
-//myTree.insert(6);
-//myTree.insert(7);
-//console.log(myTree.find(5));
-//console.log(myTree.levelOrder());
-console.log(myTree.height(3));
-//myTree.delete(5);
-//console.log(myTree);
-//console.log(myTree.prettyPrint());
+function randomArray() {
+    let array = [];
+
+    for (let i = 0; i < 5; i++) {
+        array.push(Math.floor(Math.random() * 10));
+    }
+
+    return array;
+}
+
+let testTree = new Tree(randomArray());
+console.log(testTree.prettyPrint());
